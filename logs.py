@@ -10,7 +10,7 @@ class ColorFormatter(logging.Formatter):
         codes = {\
             None:       (0,   0),
             'DEBUG':    (0,   2), # grey
-            'INFO':     (0,   0), # normal
+            'INFO':     (0,   0), # black
             'WARNING':  (1,  34), # blue
             'ERROR':    (1,  31), # red
             'CRITICAL': (1, 101), # black, red background
