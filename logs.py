@@ -9,11 +9,11 @@ class ColorFormatter(logging.Formatter):
     def color(self, level=None):
         codes = {\
             None:       (0,   0),
-            'DEBUG':    (0,   2), # gris
-            'INFO':     (0,   0), # normal
-            'WARNING':  (1,  34), # azul
-            'ERROR':    (1,  31), # rojo
-            'CRITICAL': (1, 101), # negro, fondo rojo
+            'DEBUG':    (0,   2), # grey
+            'INFO':     (0,   0), # black
+            'WARNING':  (1,  34), # blue
+            'ERROR':    (1,  31), # red
+            'CRITICAL': (1, 101), # black, red background
             }
         return (chr(27)+'[%d;%dm') % codes[level]
 
