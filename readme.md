@@ -13,9 +13,9 @@ You can create an account at: http://cartodb.com/
 Deployment, configuration and running
 -----
 
-orion2ducksboard must be deployed on a server reachable by the Context Broker.
+orion2cartodb must be deployed on a server reachable by the Context Broker.
 
-orion2ducksboard is based on webapp2, please see https://webapp-improved.appspot.com for full details, so you will need to install the following dependences on your server:
+orion2cartodb is based on webapp2, please see https://webapp-improved.appspot.com for full details, so you will need to install the following dependences on your server:
 
 ```
     $ pip install WebOb
@@ -23,13 +23,13 @@ orion2ducksboard is based on webapp2, please see https://webapp-improved.appspot
     $ pip install webapp2
 ```
 
-Once webapp2 is installed, you must edit the orion2ducksboard configuration file (orion2ducksboard.yaml): 
+Once webapp2 is installed, you must edit the orion2cartodb configuration file (orion2cartodb.yaml): 
 
 -   orion2cartodb_host: your server IP address interface attached IP reachable by the Context Broker.
 -   orion2cartodb_port: your server port. Please remember that must be reachable from Context Broker.
 -   orion2cartodb_apikey: your private CartoDB API key.
 
-Finally orion2ducksboard is ready to be started:
+Finally orion2cartodb is ready to be started:
 
 ```
     $ python orion2cartodb
