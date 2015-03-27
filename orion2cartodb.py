@@ -110,7 +110,7 @@ class DefaultHandler(webapp2.RequestHandler):
             logs.logger.warn("An error occurred while trying to send info to CartoDB")
             error=True
 
-        # Return number of ROWs updated and if there was an error
+        # Return number of ROWs d and if there was an error
         return error, total_rows, attributes
 
 
@@ -133,7 +133,7 @@ class DefaultHandler(webapp2.RequestHandler):
                     latitude=position[0]
                     longitude=position[1]
                     attributes_values=attributes_values+"the_geom=ST_SetSRID(ST_Point("+str(longitude)+","+str(latitude)+"),"+EPSG+")"+","
-
+                    #SELECT cartodb_id,ST_AsGeoJSON(the_geom) as the_geom FROM {table_name}
             # URL for updating attributes
             url=str(properties["cartodb_base_endpoint"]) + "/api/v2/sql?q="+"UPDATE " + tablename + " SET "+ attributes_values[:-1] +" WHERE name='" + entity_name + "' &api_key=" + properties["cartodb_apikey"]
 
@@ -167,6 +167,11 @@ class DefaultHandler(webapp2.RequestHandler):
 
             # Loop for attributes
             for key in types.keys():
+
+                if key=="position":
+                    position=str(attributes[key]).split(',')
+                    latitude=position[0]
+                    longitude=position[1]
 
                 # If attribute type is not position (Position is automatically created)
                 if key!="position":
@@ -207,6 +212,9 @@ class DefaultHandler(webapp2.RequestHandler):
             # Create table
             error,total_rows, existing_attributes=self.send_cartodb(url)
 
+            #Update number of rows created
+            cont=cont+1
+
             # If table is created
             if error==False:
                 logs.logger.info("Displaying table '" + str(name)+"'")
@@ -229,7 +237,7 @@ class DefaultHandler(webapp2.RequestHandler):
             logs.logger.info("Creating ROW " + str(entity_name)+" ...")
 
             # URL to create a new ROW
-            url = str(properties["cartodb_base_endpoint"]) + "/api/v2/sql?q=INSERT INTO " + name + " ("+keys[:-1]+") VALUES("+values[:-1]+") &api_key=" + properties["cartodb_apikey"]
+            url = str(properties["cartodb_base_endpoint"]) + "/api/v2/sql?q=INSERT INTO " + name + " (the_geom,"+keys[:-1]+") VALUES (ST_SetSRID(ST_Point("+str(longitude)+","+str(latitude)+"),4326),"+values[:-1]+") &api_key=" + properties["cartodb_apikey"]
 
             # Create new ROW
             error,total_rows, existing_attributes=self.send_cartodb(url)
@@ -319,10 +327,20 @@ class DefaultHandler(webapp2.RequestHandler):
             # Control table name
             if tablename=='none':
 
-                logs.logger.error("Wrong table name. Fiware-Service request header was expected")
-                self.response.status_int = 403
-                self.response.write("Wrong table name. Fiware-Service request header was expected")
-                return
+                # Try to get tablename from properties
+                if "cartodb_tablename" in properties:
+                    tablename=string_normalizer(str(properties["cartodb_tablename"]))
+                else:
+                    logs.logger.error("Wrong table name. Fiware-Service request header was expected")
+                    self.response.status_int = 403
+                    self.response.write("Wrong table name. Fiware-Service request header was expected")
+                    return
+
+                if tablename=="":
+                    logs.logger.error("Wrong table name. Configure orion2cartodb.yaml")
+                    self.response.status_int = 403
+                    self.response.write("Wrong table name. Configure orion2cartodb.yaml")
+                    return
 
             #Loop for entities
             for entity_id in data["contextResponses"]:
@@ -339,27 +357,40 @@ class DefaultHandler(webapp2.RequestHandler):
                     attributes[string_normalizer(str(attritube_id["name"]))]=str(attritube_id["value"])
                     types[str(string_normalizer(attritube_id["name"]))]=string_normalizer(str(attritube_id["type"]))
 
-                # Try to update the attributes
-                error,total_rows=self.update(tablename,entity_name,attributes)
-                rows_updated=rows_updated+total_rows
+                if properties["cartodb_mode"]== "realtime":
 
-                # If there is an error -> Table is not created or ROW is not created or there are new attributes
-                if error==True or total_rows==0:
-
-                    # Create table and/or ROW and/or attributes
-                    error,total_rows=self.create_table_and_attributes(tablename, entity_name,attributes,types)
-
-                    if error==False:
-                        logs.logger.info("Created "+str(total_rows)+" rows in table "+tablename)
-
-                    # Try to Update attributes again
+                    # Try to update the attributes
                     error,total_rows=self.update(tablename,entity_name,attributes)
                     rows_updated=rows_updated+total_rows
 
+                    # If there is an error -> Table is not created or ROW is not created or there are new attributes
+                    if error==True or total_rows==0:
+
+                        # Create table and/or ROW and/or attributes
+                        error,total_rows=self.create_table_and_attributes(tablename, entity_name,attributes,types)
+                        rows_updated=rows_updated+total_rows
+
+                        if error==False:
+                            logs.logger.info("Created "+str(total_rows)+" rows in table "+tablename)
+
+                        # Try to Update attributes again
+                        # error,total_rows=self.update(tablename,entity_name,attributes)
+
+
+                if properties["cartodb_mode"]== "historic":
+
+                        # Create table and/or ROW and/or attributes
+                        error,total_rows=self.create_table_and_attributes(tablename, entity_name,attributes,types)
+                        rows_updated=rows_updated+total_rows
+
+                        if error==False:
+                            logs.logger.info("Created "+str(total_rows)+" rows in table "+tablename)
+
+
             if rows_updated>0:
-                logs.logger.info("Updated "+str(rows_updated)+" rows")
+                logs.logger.info("Updated/Created "+str(rows_updated)+" rows")
                 self.response.status_int = 200
-                self.response.write("Updated "+str(rows_updated)+" rows")
+                self.response.write("Updated/Created "+str(rows_updated)+" rows")
             else:
                 logs.logger.error("An error occurred and table is not updated")
                 self.response.status_int = 403
