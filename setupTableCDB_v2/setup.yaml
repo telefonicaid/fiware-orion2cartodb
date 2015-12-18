@@ -1,0 +1,16 @@
+tablename: "capa..."
+user_cartodb: "tecnoport"
+entity_type: "sensorElement"
+fiware_service: "tecnoport"
+url_cb: "https://cb.iotplatform.telefonica.com:10027/NGSI10/queryContext"
+#url_cb: "http://int.dca.tid.es/NGSI10/queryContext"
+
+user: "tecnoport_admin"
+password: "2OboVhDaWG"
+url_login: "https://auth.iotplatform.telefonica.com:15001/v3/auth/tokens"
+cartodb_apikey: "08a05ff6a82db8ffa6c6245d553075df3a7492ed"
+#cartodb_apikey: "6e87270accdefa4e1126d00cbbd6caa4132c3619"
+cartodb_base_endpoint: "https://tecnoport.cartodb.com"
+#cartodb_base_endpoint: "https://iotsupport.cartodb.com"
+
+table_checker_url: https://tecnoport.cartodb.com/api/v2/sql?q=SELECT * FROM  CDB_UserTables()&api_key=%s
