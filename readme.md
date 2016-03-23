@@ -120,6 +120,10 @@ Anyway, you can update it on your own as follows:
 
 If everything went well, you should see the attribute updates at the CartoDB data table.
 
+### Add TimeStamp to the table 
+
+https://gist.github.com/iriberri/0d5481560644f9bd5fed
+
 
 Limitations
 -----------
